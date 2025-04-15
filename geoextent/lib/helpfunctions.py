@@ -13,6 +13,12 @@ from osgeo import osr
 from pandas.core.tools.datetimes import _guess_datetime_format_for_array as time_format
 from pathlib import Path
 
+
+# to suppress warning "FutureWarning: Neither gdal.UseExceptions() nor gdal.DontUseExceptions() has been explicitly called. In GDAL 4.0, exceptions will be enabled by default."
+ogr.UseExceptions()
+osr.UseExceptions()
+
+
 output_time_format = '%Y-%m-%d'
 PREFERRED_SAMPLE_SIZE = 30
 WGS84_EPSG_ID = 4326
