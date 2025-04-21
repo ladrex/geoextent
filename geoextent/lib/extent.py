@@ -5,6 +5,7 @@ import zipfile
 import tempfile
 from traitlets import List
 from traitlets.config import Application
+from .content_providers import Figshare
 from .content_providers import Zenodo
 from . import handleCSV
 from . import handleRaster
@@ -223,7 +224,7 @@ def from_repository(repository_identifier, bbox=False, tbox=False, details=False
 
 
 class geoextent_from_repository(Application):
-    content_providers = List([Zenodo.Zenodo], config=True, help="""
+    content_providers = List([Figshare.Figshare, Zenodo.Zenodo], config=True, help="""
         Ordered list by priority of ContentProviders to try in turn to fetch
         the contents specified by the user.
         """
