@@ -7,7 +7,7 @@ class Zenodo(DoiProvider):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger("geoextent")
-        self.host = {"hostname": ["https://zenodo.org/record/", "http://zenodo.org/record/"],
+        self.host = {"hostname": ["https://zenodo.org/records/", "http://zenodo.org/records/"],
                      "api": "https://zenodo.org/api/records/"
                      }
         self.reference = None
@@ -34,7 +34,7 @@ class Zenodo(DoiProvider):
                 self.record = resp.json()
                 return self.record
             except:
-                m = "The zenodo record : https://zenodo.org/record/" + self.record_id + " does not exist"
+                m = "The zenodo record : https://zenodo.org/records/" + self.record_id + " does not exist"
                 self.log.warning(m)
                 raise HTTPError(m)
         else:
@@ -58,7 +58,7 @@ class Zenodo(DoiProvider):
 
         file_list = []
         for j in files:
-            file_list.append(j['links']['download'])
+            file_list.append(j['links']['self'])
         return file_list
 
     def download(self, folder):
@@ -68,7 +68,7 @@ class Zenodo(DoiProvider):
             counter = 1
             for file_link in download_links:
                 resp = self.session.get(file_link, stream=True)
-                filename = os.path.split(resp.url)[1]
+                filename = file_link.split('/')[-2]
                 filepath = os.path.join(folder, filename)
                 with open(filepath, "wb") as dst:
                     for chunk in resp.iter_content(chunk_size=None):
