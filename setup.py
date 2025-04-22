@@ -26,12 +26,13 @@ setuptools.setup(
         'pygeoj',
         'pyshp',
         'gdal',
+        'patoolib',
         'python-dateutil',
-      'pandas',
-      'requests',
-      'numpy',
-      'traitlets',
-      'wheel'
+        'pandas',
+        'requests',
+        'numpy',
+        'traitlets',
+        'wheel'
     ],
     entry_points={
         "console_scripts": [

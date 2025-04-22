@@ -1,6 +1,5 @@
 from requests import HTTPError
 import urllib.parse
-import zipfile
 from .providers import DoiProvider
 from ..extent import *
 
@@ -78,14 +77,12 @@ class Dryad(DoiProvider):
             counter = 1
             for file_link in download_links:
                 resp = self.session.get(file_link, stream=True)
-                filename = "files.zip"
+                filename = "dataset.zip"
                 filepath = os.path.join(folder, filename)
                 try:
                     with open(filepath, "wb") as dst:
                         for chunk in resp.iter_content(chunk_size=None):
                             dst.write(chunk)
-                    with zipfile.ZipFile(filepath, 'r') as zip_ref:
-                        zip_ref.extractall(os.path.join(folder, "extracted"))
                 except:
                     m = "The Dryad dataset : " + self.get_url + " does not exist"
                     self.log.warning(m)

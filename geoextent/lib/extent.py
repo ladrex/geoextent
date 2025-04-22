@@ -1,7 +1,7 @@
 import logging
 import os
+import patoolib
 import threading
-import zipfile
 import tempfile
 from traitlets import List
 from traitlets.config import Application
@@ -55,9 +55,9 @@ def compute_bbox_wgs84(module, path):
 
 
 def fromDirectory(path, bbox=False, tbox=False, details=False):
-    """ Extracts geoextent from a directory/ZipFile
+    """ Extracts geoextent from a directory/archive
     Keyword arguments:
-    path -- directory/ZipFile path
+    path -- directory/archive path
     bbox -- True if bounding box is requested (default False)
     tbox -- True if time box is requested (default False)
     """
@@ -71,30 +71,31 @@ def fromDirectory(path, bbox=False, tbox=False, details=False):
     # initialization of later output dict
     metadata_directory = {}
 
-    isZip = zipfile.is_zipfile(path)
+    # TODO eventually delete all extracted content
 
-    if isZip:
-        logger.info("Inspecting zipfile {}".format(path))
-        hf.extract_zip(path)
-        extract_folder = path[:-4]
-        logger.info("Extract_folder zipfile {}".format(extract_folder))
+    is_archive = patoolib.is_archive(path)
+    
+    if is_archive:
+        logger.info("Inspecting archive {}".format(path))
+        extract_folder = hf.extract_archive(path)
+        logger.info("Extract_folder archive {}".format(extract_folder))
         path = extract_folder
 
     for filename in os.listdir(path):
-        logger.info("path {}, folder/zipfile {}".format(path, filename))
-        isZip = zipfile.is_zipfile(os.path.join(path, filename))
-        if isZip:
-            logger.info("**Inspecting folder {}, is zip ? {}**".format(filename, str(isZip)))
+        logger.info("path {}, folder/archive {}".format(path, filename))
+        is_archive = patoolib.is_archive(os.path.join(path, filename))
+        if is_archive:
+            logger.info("**Inspecting folder {}, is archive ? {}**".format(filename, str(is_archive)))
             metadata_directory[filename] = fromDirectory(os.path.join(path, filename), bbox, tbox, details=True)
         else:
-            logger.info("Inspecting folder {}, is zip ? {}".format(filename, str(isZip)))
+            logger.info("Inspecting folder {}, is archive ? {}".format(filename, str(is_archive)))
             if os.path.isdir(os.path.join(path, filename)):
                 metadata_directory[filename] = fromDirectory(os.path.join(path, filename), bbox, tbox, details=True)
             else:
                 metadata_file = fromFile(os.path.join(path, filename), bbox, tbox)
                 metadata_directory[str(filename)] = metadata_file
 
-    file_format = "zip" if isZip else 'folder'
+    file_format = "archive" if is_archive else 'folder'
     metadata['format'] = file_format
 
     if bbox:

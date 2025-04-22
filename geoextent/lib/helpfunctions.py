@@ -3,9 +3,10 @@ import datetime
 import itertools
 import logging
 import os
+import patoolib
 import random
 import re
-import zipfile
+import uuid
 import numpy as np
 import pandas as pd
 from osgeo import ogr
@@ -267,19 +268,22 @@ def date_parser(datetime_list, num_sample=None):
     return parse_time
 
 
-def extract_zip(filepath):
+def extract_archive(filepath) -> Path:
     """
-    Function purpose: unzip file (always inside a new folder)
-    filepath: filepath to zipfile
+    Function purpose: extract archive (always inside a new folder)
+    filepath: filepath to archive
     """
 
-    abs_path = os.path.abspath(filepath)
-    root_folder = os.path.split(abs_path)[0]
-    zip_name = os.path.split(abs_path)[1][:-4]
-    zip_folder_path = os.path.join(root_folder, zip_name)
+    filepath = Path(filepath)
 
-    with zipfile.ZipFile(abs_path) as zip_file:
-        zip_file.extractall(zip_folder_path)
+    while True:
+        folder_to_extract = Path.joinpath(filepath.parent, f"{filepath.name}_{uuid.uuid4()}")
+        if not folder_to_extract.exists():
+            break
+
+    patoolib.extract_archive(archive=filepath, outdir=folder_to_extract, verbosity=-1)
+
+    return folder_to_extract
 
 
 def bbox_merge(metadata, origin):
