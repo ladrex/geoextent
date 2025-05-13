@@ -213,10 +213,10 @@ def fromFile(filepath, bbox=True, tbox=True, num_sample=None):
     return metadata
 
 
-def from_repository(repository_identifier, bbox=False, tbox=False, details=False):
+def from_repository(repository_identifier, bbox=False, tbox=False, details=False, throttle=False):
     try:
         geoextent = geoextent_from_repository()
-        metadata = geoextent.from_repository(repository_identifier, bbox, tbox, details)
+        metadata = geoextent.from_repository(repository_identifier, bbox, tbox, details, throttle)
         metadata['format'] = 'repository'
     except ValueError as e:
         logger.debug("Error while inspecting repository {}: {}".format(repository_identifier, e))
@@ -232,7 +232,7 @@ class geoextent_from_repository(Application):
         """
                              )
 
-    def from_repository(self, repository_identifier, bbox=False, tbox=False, details=False):
+    def from_repository(self, repository_identifier, bbox=False, tbox=False, details=False, throttle=False):
 
         if bbox + tbox == 0:
             logger.error("Require at least one of extraction options, but bbox is {} and tbox is {}".format(bbox, tbox))
@@ -246,7 +246,7 @@ class geoextent_from_repository(Application):
                 supported_by_geoextent = True
                 try:
                     with tempfile.TemporaryDirectory() as tmp:
-                        repository.download(tmp)
+                        repository.download(tmp, throttle)
                         metadata = fromDirectory(tmp, bbox, tbox, details)
                     return metadata
                 except ValueError as e:

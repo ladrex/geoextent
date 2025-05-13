@@ -7,12 +7,13 @@ class Zenodo(DoiProvider):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger("geoextent")
-        self.host = {"hostname": ["https://zenodo.org/records/", "http://zenodo.org/records/"],
+        self.host = {"hostname": ["https://zenodo.org/records/", "http://zenodo.org/records/", "https://zenodo.org/api/records/"],
                      "api": "https://zenodo.org/api/records/"
                      }
         self.reference = None
         self.record_id = None
         self.name = "Zenodo"
+        self.throttle = False
 
     def validate_provider(self, reference):
         self.reference = reference
@@ -28,12 +29,15 @@ class Zenodo(DoiProvider):
         if self.validate_provider:
             try:
                 resp = self._request(
-                    "{}{}".format(self.host["api"], self.record_id), headers={"accept": "application/json"}
+                    "{}{}".format(self.host["api"], self.record_id),
+                    headers={"accept": "application/json"},
+                    throttle=self.throttle,
                 )
                 resp.raise_for_status()
                 self.record = resp.json()
                 return self.record
-            except:
+            except Exception as e:
+                print("DEBUG:", e)
                 m = "The zenodo record : https://zenodo.org/records/" + self.record_id + " does not exist"
                 self.log.warning(m)
                 raise HTTPError(m)
@@ -51,7 +55,7 @@ class Zenodo(DoiProvider):
 
         try:
             files = record['files']
-        except:
+        except Exception:
             m = "This record does not have Open Access files. Verify the Access rights of the record."
             self.log.warning(m)
             raise ValueError(m)
@@ -61,15 +65,17 @@ class Zenodo(DoiProvider):
             file_list.append(j['links']['self'])
         return file_list
 
-    def download(self, folder):
+    def download(self, folder, throttle=False):
+        self.throttle = throttle
         self.log.debug("Downloading Zenodo record id: {} ".format(self.record_id))
         try:
             download_links = self._get_file_links
             counter = 1
             for file_link in download_links:
-                resp = self.session.get(file_link, stream=True)
+                resp = self._request(file_link, throttle=self.throttle, stream=True,)
                 filename = file_link.split('/')[-2]
                 filepath = os.path.join(folder, filename)
+                # TODO: catch http error (?)
                 with open(filepath, "wb") as dst:
                     for chunk in resp.iter_content(chunk_size=None):
                         dst.write(chunk)

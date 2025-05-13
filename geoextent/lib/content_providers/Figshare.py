@@ -7,12 +7,13 @@ class Figshare(DoiProvider):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger("geoextent")
-        self.host = {"hostname": ["https://figshare.com/articles/", "http://figshare.com/articles/"],
+        self.host = {"hostname": ["https://figshare.com/articles/", "http://figshare.com/articles/", "https://api.figshare.com/v2/articles/"],
                      "api": "https://api.figshare.com/v2/articles/"
                     }
         self.reference = None
         self.record_id = None
         self.name = "Figshare"
+        self.throttle = False
 
     def validate_provider(self, reference):
         self.reference = reference
@@ -28,12 +29,15 @@ class Figshare(DoiProvider):
         if self.validate_provider:
             try:
                 resp = self._request(
-                    "{}{}".format(self.host["api"], self.record_id), headers={"accept": "application/json"}
+                    "{}{}".format(self.host["api"], self.record_id),
+                    headers={"accept": "application/json"},
+                    throttle=self.throttle,
                 )
                 resp.raise_for_status()
                 self.record = resp.json()
                 return self.record
-            except:
+            except Exception as e:
+                print("DEBUG:", e)
                 m = "The Figshare item : https://figshare.com/articles/" + self.record_id + " does not exist"
                 self.log.warning(m)
                 raise HTTPError(m)
@@ -51,7 +55,7 @@ class Figshare(DoiProvider):
 
         try:
             files = record['files']
-        except:
+        except Exception:
             m = "This item does not have Open Access files. Verify the Access rights of the item."
             self.log.warning(m)
             raise ValueError(m)
@@ -59,18 +63,20 @@ class Figshare(DoiProvider):
         file_list = []
         for j in files:
             file_list.append(j['download_url'])
-            # TODO files can be empty
+            # TODO: files can be empty
         return file_list
 
-    def download(self, folder):
+    def download(self, folder, throttle=False):
+        self.throttle = throttle
         self.log.debug("Downloading Figshare item id: {} ".format(self.record_id))
         try:
             download_links = self._get_file_links
             counter = 1
             for file_link in download_links:
-                resp = self.session.get(file_link, stream=True)
+                resp = self._request(file_link, throttle=self.throttle, stream=True,)
                 filename = file_link.split('/')[-2]
                 filepath = os.path.join(folder, filename)
+                # TODO: catch http error (?)
                 with open(filepath, "wb") as dst:
                     for chunk in resp.iter_content(chunk_size=None):
                         dst.write(chunk)

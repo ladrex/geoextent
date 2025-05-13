@@ -1,3 +1,5 @@
+import math
+import time
 from requests import HTTPError
 import urllib.parse
 from .providers import DoiProvider
@@ -15,6 +17,7 @@ class Dryad(DoiProvider):
         self.record_id = None
         self.record_id_html = None
         self.name = "Dryad"
+        self.throttle = False
 
     def validate_provider(self, reference):
         self.reference = reference
@@ -27,8 +30,9 @@ class Dryad(DoiProvider):
             return False
 
     def _get_metadata(self):
-
+        # ! DEPRECATED function
         if self.validate_provider:
+            # TODO: except http error and retry
             try:
                 resp = self._request(
                     "{}{}".format(self.host["api"], self.record_id_html), headers={"accept": "application/json"}
@@ -36,7 +40,7 @@ class Dryad(DoiProvider):
                 resp.raise_for_status()
                 self.record = resp.json()
                 return self.record
-            except:
+            except Exception:
                 m = "The Dryad dataset : " + self.get_url + " does not exist"
                 self.log.warning(m)
                 raise HTTPError(m)
@@ -70,7 +74,8 @@ class Dryad(DoiProvider):
         return file_list
 
 
-    def download(self, folder):
+    def download(self, folder, throttle=False):
+        self.throttle = throttle
         self.log.debug("Downloading Dryad dataset id: {} ".format(self.record_id))
         try:
             download_links = self._get_file_links
@@ -83,10 +88,12 @@ class Dryad(DoiProvider):
                     with open(filepath, "wb") as dst:
                         for chunk in resp.iter_content(chunk_size=None):
                             dst.write(chunk)
-                except:
+                except Exception as e:
+                    print("EXCEPTION:", e)
                     m = "The Dryad dataset : " + self.get_url + " does not exist"
                     self.log.warning(m)
                     raise HTTPError(m)
+                    print("DEBUG: dryad download error:", self.get_url)
                 self.log.debug("{} out of {} files downloaded.".format(counter, len(download_links)))
                 counter += 1
         except ValueError as e:
