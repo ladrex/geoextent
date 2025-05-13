@@ -29,7 +29,12 @@ def checkFileSupported(filepath):
 
     if driver == "CSV":
         with open(filepath) as csv_file:
-            data = csv.reader(csv_file.readlines())
+            try:
+                # exception to prevent this error:
+                # UnicodeDecodeError: 'utf-8' codec can't decode byte 0x8a in position 187: invalid start byte
+                data = csv.reader(csv_file.readlines())
+            except UnicodeDecodeError:
+                data = None
             if data is None:
                 logger.debug("File {} is NOT supported by HandleCSV module".format(filepath))
                 return False
