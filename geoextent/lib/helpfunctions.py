@@ -281,7 +281,10 @@ def extract_archive(filepath) -> Path:
         if not folder_to_extract.exists():
             break
 
-    patoolib.extract_archive(archive=filepath, outdir=folder_to_extract, verbosity=-1)
+    try:
+        patoolib.extract_archive(archive=filepath, outdir=folder_to_extract, verbosity=-1)
+    except patoolib.util.PatoolError:
+        pass
 
     return folder_to_extract
 
