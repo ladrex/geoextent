@@ -29,7 +29,7 @@ class DoiProvider(ContentProvider):
                 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
 
                 if e.response.status_code == 429:
-                    throttle(e.response)
+                    self._throttle(e.response)
                 else:
                     print(e.response.status_code)
                     raise
