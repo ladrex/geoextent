@@ -26,7 +26,7 @@ setuptools.setup(
         'pygeoj',
         'pyshp',
         'gdal',
-        'patoolib',
+        'patool',
         'python-dateutil',
         'pandas',
         'requests',
