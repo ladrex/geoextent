@@ -62,7 +62,9 @@ class Figshare(DoiProvider):
 
         file_list = []
         for j in files:
-            file_list.append(j['download_url'])
+            name = j["name"]
+            link = j["download_url"]
+            file_list.append([name, link])
             # TODO: files can be empty
         return file_list
 
@@ -72,9 +74,8 @@ class Figshare(DoiProvider):
         try:
             download_links = self._get_file_links
             counter = 1
-            for file_link in download_links:
+            for filename, file_link in download_links:
                 resp = self._request(file_link, throttle=self.throttle, stream=True,)
-                filename = file_link.split('/')[-2]
                 filepath = os.path.join(folder, filename)
                 # TODO: catch http error (?)
                 with open(filepath, "wb") as dst:
