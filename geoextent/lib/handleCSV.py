@@ -23,17 +23,18 @@ def checkFileSupported(filepath):
     try:
         file = gdal.OpenEx(filepath)
         driver = file.GetDriver().ShortName
-    except:
+    except Exception:
         logger.debug("File {} is NOT supported by HandleCSV module".format(filepath))
         return False
 
     if driver == "CSV":
         with open(filepath) as csv_file:
             try:
+                delimiter = hf.getDelimiter(csv_file)
+                data = csv.reader(csv_file.readlines(10000), delimiter=delimiter)
+            except UnicodeDecodeError:
                 # exception to prevent this error:
                 # UnicodeDecodeError: 'utf-8' codec can't decode byte 0x8a in position 187: invalid start byte
-                data = csv.reader(csv_file.readlines())
-            except UnicodeDecodeError:
                 data = None
             if data is None:
                 logger.debug("File {} is NOT supported by HandleCSV module".format(filepath))
@@ -53,11 +54,11 @@ def getBoundingBox(filePath):
     '''
 
     with open(filePath) as csv_file:
-        # To get delimiter either comma or simecolon
-        date = hf.getDelimiter(csv_file)
+        delimiter = hf.getDelimiter(csv_file)
+        data = csv.reader(csv_file, delimiter=delimiter)
 
         elements = []
-        for x in date:
+        for x in data:
             elements.append(x)
 
         spatial_lat_extent = hf.searchForParameters(elements, search['latitude'], exp_data='numeric')
@@ -97,8 +98,8 @@ def getTemporalExtent(filepath, num_sample):
     """
 
     with open(filepath) as csv_file:
-        # To get delimiter either comma or semicolon
-        data = hf.getDelimiter(csv_file)
+        delimiter = hf.getDelimiter(csv_file)
+        data = csv.reader(csv_file, delimiter=delimiter)
 
         elements = []
         for x in data:
@@ -127,7 +128,9 @@ def getCRS(filepath):
     '''
 
     with open(filepath) as csv_file:
-        data = hf.getDelimiter(csv_file)
+        delimiter = hf.getDelimiter(csv_file)
+        data = csv.reader(csv_file.readlines(), delimiter=delimiter)
+
         elements = []
         for x in data:
             elements.append(x)

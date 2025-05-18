@@ -150,8 +150,6 @@ def fromDirectory(
 
     if timeout and timeout_flag:
         metadata["timeout"] = timeout
-    else:
-        metadata["timeout"] = None
 
     return metadata
 
