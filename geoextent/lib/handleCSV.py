@@ -36,6 +36,10 @@ def checkFileSupported(filepath):
                 # exception to prevent this error:
                 # UnicodeDecodeError: 'utf-8' codec can't decode byte 0x8a in position 187: invalid start byte
                 data = None
+            except ValueError:
+                # exception to prevent this error:
+                # ValueError: bad delimiter or quotechar value
+                data = None
             if data is None:
                 logger.debug("File {} is NOT supported by HandleCSV module".format(filepath))
                 return False
