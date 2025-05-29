@@ -289,6 +289,12 @@ def extract_archive(filepath) -> Path:
         # exception to prevent this error:
         # TypeError: Path.replace() takes 2 positional arguments but 3 were given
         pass
+    except Exception:
+        pass
+    finally:
+        folder_to_extract.mkdir(parents=True, exist_ok=True)
+        # to prevent this error:
+        # [Errno 2] No such file or directory:
 
     return folder_to_extract
 
