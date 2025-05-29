@@ -40,6 +40,10 @@ def checkFileSupported(filepath):
                 # exception to prevent this error:
                 # ValueError: bad delimiter or quotechar value
                 data = None
+            except csv.Error:
+                # exception to prevent this error:
+                # _csv.Error: Could not determine delimiter
+                data = None
             if data is None:
                 logger.debug("File {} is NOT supported by HandleCSV module".format(filepath))
                 return False

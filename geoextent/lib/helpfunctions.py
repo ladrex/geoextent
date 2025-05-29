@@ -285,6 +285,10 @@ def extract_archive(filepath) -> Path:
         patoolib.extract_archive(archive=filepath, outdir=folder_to_extract, verbosity=-1)
     except patoolib.util.PatoolError:
         pass
+    except TypeError:
+        # exception to prevent this error:
+        # TypeError: Path.replace() takes 2 positional arguments but 3 were given
+        pass
 
     return folder_to_extract
 
